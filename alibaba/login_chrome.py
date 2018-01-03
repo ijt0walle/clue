@@ -1,8 +1,5 @@
 
 # coding=utf-8
-from __future__ import print_function
-from __future__ import print_function
-
 import base64
 import random
 import time
@@ -17,7 +14,7 @@ from selenium.webdriver import ActionChains
 
 class login_chrome_1688:
     search_index_url = 'https://s.1688.com/company/company_search.htm'
-    sleep_time = 15
+    sleep_time = 0
     count = 3
     captch_time = 300
     warning_sleep_time = 1
@@ -205,6 +202,7 @@ class login_chrome_1688:
         return html
 
     def dectected_click_status(self,html,url):
+        self.close_window()
         status = self.detected_status(html)
         flag = 0
         while status > 0:
@@ -215,6 +213,18 @@ class login_chrome_1688:
         if flag != 0:
             time.sleep(self.captch_time)
         return html
+
+    def close_window(self):
+        time.sleep(0.5)
+        elements = self.dr.find_elements_by_xpath('//*[@id="sufei-dialog-close"]')
+        if elements is not None and len(elements)>0:
+            for i in range(0,5):
+                try:
+                    elements[0].click()
+                    break
+                except:
+                    time.sleep(2)
+                    print 'fu chaung dianjie shibai'
 
     def element_click(self,url):
         self.dr.find_element_by_xpath(url).click()
