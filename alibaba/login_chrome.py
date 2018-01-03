@@ -14,7 +14,7 @@ from selenium.webdriver import ActionChains
 
 class login_chrome_1688:
     search_index_url = 'https://s.1688.com/company/company_search.htm'
-    sleep_time = 0
+    sleep_time = 15
     count = 3
     captch_time = 300
     warning_sleep_time = 1
