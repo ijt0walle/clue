@@ -14,7 +14,7 @@ from selenium.webdriver import ActionChains
 
 class login_chrome_1688:
     search_index_url = 'https://s.1688.com/company/company_search.htm'
-    sleep_time = 15
+    sleep_time = 0
     count = 3
     captch_time = 300
     warning_sleep_time = 1
@@ -89,31 +89,36 @@ class login_chrome_1688:
             self.dr.get(self.url)
             time.sleep(5)
             self.dr.delete_all_cookies()
-            loginframe = self.dr.find_element_by_xpath('//*[@id="loginchina"]/iframe')
-            self.dr.switch_to.frame(loginframe)
-            # print self.dr.page_source
-            time.sleep(3)
-            self.dr.find_element_by_id("J_Quick2Static").click()
-            # ActionChains(self.dr).move_to_element(self.dr.find_element_by_xpath('//input[@id="TPL_username_1"]')).perform()
-            # i = 0
-            # while i < 20:
-            #     ActionChains(self.dr).move_by_offset(1, 1).perform()
-            #     time.sleep(0.05)
-            #     i += 1
-
-            self.dr.find_element_by_id("TPL_username_1").clear()
-            self.dr.find_element_by_id("TPL_password_1").clear()
-            self.dr.find_element_by_id("TPL_username_1").send_keys(self.user_name)
-            time.sleep(2)
-            self.dr.find_element_by_id("TPL_password_1").send_keys(self.password)
-            time.sleep(60)
-            self.dr.find_element_by_id("J_SubmitStatic").click()
-            #time.sleep(60)
-            #cookies = self.dr.get_cookies()
-            #print("cookie = %s" % str(cookies))
-            #print(self.dr.page_source)#
+            index_cnt = 1
+            while index_cnt< 3:
+                loginframe = self.dr.find_element_by_xpath('//*[@id="loginchina"]/iframe')
+                self.dr.switch_to.frame(loginframe)
+                time.sleep(3)
+                self.dr.find_element_by_id("J_Quick2Static").click()
+                self.dr.find_element_by_id("TPL_username_1").send_keys(self.user_name)
+                time.sleep(1)
+                self.dr.find_element_by_id("TPL_password_1").clear()
+                self.dr.find_element_by_id("TPL_password_1").send_keys(self.password)
+                # ActionChains(self.dr).move_to_element(
+                #     self.dr.find_element_by_xpath('//input[@id="TPL_password_1"]')).perform()
+                time.sleep(6)
+                self.dragSlider()
+                self.dr.find_element_by_id("J_SubmitStatic").click()
+                if str(self.dr.current_url) == self.url:
+                    self.dr.refresh()
+                else:
+                    return
         except Exception as e:
-            print(e)
+            print 'traceback.format_exc():\n%s' % traceback.format_exc()
+
+    def dragSlider(self):
+        w = self.dr.find_element_by_xpath('//*[@id="nc_1__scale_text"]')
+        width1 = w.size.get("width")
+        dragger = self.dr.find_element_by_xpath('//*[@id="nc_1_n1z"]')
+        width2 = dragger.size.get("width")
+        width =  width1 - width2
+        ActionChains(self.dr).move_to_element(dragger).perform()  # 将鼠标移动到这里
+        ActionChains(self.dr).drag_and_drop_by_offset(dragger, width, 0).perform()  # 拖拽到指定位置
 
     def click_by_contains_url(self,url):
         html = ''
@@ -205,11 +210,16 @@ class login_chrome_1688:
         self.close_window()
         status = self.detected_status(html)
         flag = 0
+        index_cnt = 0
         while status > 0:
             flag = 1
             self.get_captch_img()
             html = self.dr.page_source
             status = self.detected_status(html)
+            index_cnt += 1
+            if index_cnt>10:
+                time.sleep(self.captch_time)
+                index_cnt = 0
         if flag != 0:
             time.sleep(self.captch_time)
         return html

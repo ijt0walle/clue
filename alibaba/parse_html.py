@@ -272,11 +272,11 @@ class parse_1688:
             titles = html.xpath("//*[@class='offer-list-row']/li/div[3]/a/@title")
             index = 0
             for title in titles:
-                list.append("商品"+str(index)+":"+process_str(title)+str("\n"))
+                list.append(str(index)+":"+process_str(title))
                 index += 1
                 if index > 20:
                     break
-            self.resultItem['goods_title'] = list
+            self.resultItem['goods_title'] = "@@".join(list)
         except Exception as e:
             print (str(self.company) + str(e.message)+",contact_name")
 
