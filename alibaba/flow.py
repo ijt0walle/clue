@@ -34,7 +34,7 @@ class flow:
         self.all_classi, sql_detail)
         result = my_sql.get_sql_data(sql)
         if result is None or len(result) == 0:
-            sql = "select id,classi,count from crm_config_detail where region = '%s' and status = 0 and TIMESTAMPDIFF(MINUTE,updated_at,now())>60 limit 1" % self.region
+            sql = "select id,classi,count from crm_config_detail where region = '%s' and status = 0 and TIMESTAMPDIFF(MINUTE,updated_at,'%s')>60 limit 1" % (self.region,get_time())
             result = my_sql.get_sql_data(sql)
             if result is not None and len(result) > 0:
                 my_sql.update(
@@ -44,6 +44,8 @@ class flow:
             result[0][0], self.region, get_time())
             id = my_sql.insert(sql)
             return (id, result[0][0], 1)
+        if result is None or len(result) == 0:
+            return result
         return result[0]
 
     def set_request(self, request):
@@ -75,6 +77,8 @@ class flow:
     def search_classi(self):
         try:
             classi_cnt = self.get_classi_count()
+            if classi_cnt is None or len(classi_cnt) == 0:
+                return
             classi = classi_cnt[1]
             index = classi_cnt[2]
             search_url = self.get_search_url(classi) + str(self.get_page_index(index))
@@ -85,21 +89,25 @@ class flow:
             print 'traceback.format_exc():\n%s' % traceback.format_exc()
 
     def search_classi_page(self, html, classi, page_size, index, class_id):
-        if page_size <= 0 or index >= page_size:
+        if page_size <= 0 or index > page_size:
             return
-        for i in range(index, page_size):
+        err_count = 0
+        for i in range(index, page_size+1):
             try:
-                Mysql_db().update("update crm_config_detail set count = %d,updated_at ='%s' where id = %d" % (
-                i, get_time(), class_id))
                 print(str(classi) + "---->" + str(i))
                 parse_html = parse_1688(classi, {})
                 list = parse_html.parse_list_search(html)
                 self.get_mysql_db(list, classi)
+                if list is not None and len(list)>1:
+                    Mysql_db().update("update crm_config_detail set count = %d,updated_at ='%s' where id = %d" % (
+                        i, get_time(), class_id))
                 html = self.request.click_by_text('下一页')
             except Exception as e:
                 print 'traceback.format_exc():\n%s' % traceback.format_exc()
-        Mysql_db().update("update crm_config_detail set status = %d,updated_at ='%s' where id = %d" % (
-            1, get_time(), class_id))
+                err_count += 1
+        if err_count <= 2:
+            Mysql_db().update("update crm_config_detail set status = %d,updated_at ='%s' where id = %d" % (
+                1, get_time(), class_id))
 
     def get_mysql_db(self, list, classi):
         if list is None or len(list) <= 0:

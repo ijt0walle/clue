@@ -90,7 +90,7 @@ class login_chrome_1688:
             time.sleep(5)
             self.dr.delete_all_cookies()
             index_cnt = 1
-            while index_cnt< 3:
+            while index_cnt< 2:
                 loginframe = self.dr.find_element_by_xpath('//*[@id="loginchina"]/iframe')
                 self.dr.switch_to.frame(loginframe)
                 time.sleep(3)
@@ -101,13 +101,13 @@ class login_chrome_1688:
                 self.dr.find_element_by_id("TPL_password_1").send_keys(self.password)
                 # ActionChains(self.dr).move_to_element(
                 #     self.dr.find_element_by_xpath('//input[@id="TPL_password_1"]')).perform()
-                time.sleep(6)
                 self.dragSlider()
+
                 self.dr.find_element_by_id("J_SubmitStatic").click()
-                if str(self.dr.current_url) == self.url:
-                    self.dr.refresh()
-                else:
-                    return
+                # if str(self.dr.current_url) == self.url:
+                #     self.dr.refresh()
+                time.sleep(60)
+
         except Exception as e:
             print 'traceback.format_exc():\n%s' % traceback.format_exc()
 

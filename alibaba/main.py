@@ -2,19 +2,16 @@
 import time
 import traceback
 import signal
-
 import os
-
 import sys
-
 from flow import flow
 from mysql_db import Mysql_db
 from login_chrome import login_chrome_1688
 
 
-IP = '17'
+IP = '19b'
 region = '上海'
-all_classi = '母婴'
+all_classi = '医药保健'
 url_region = 'province=%C9%CF%BA%A3'
 user_password = None
 
@@ -30,7 +27,6 @@ def get_user_name():
 
 def processing():
     user_password = get_user_name()
-
     if user_password is None or len(user_password) == 0:
         user_password = (123456, 'flesdewe234', 'lqz123456789')
     try:
@@ -41,17 +37,22 @@ def processing():
         request = login_chrome_1688(user_password[1], user_password[2], int(user_password[0]))
         time.sleep(3)
         while True:
-            try:
-                f = flow(request,region,all_classi,url_region)
-                f.search_classi()
-                time.sleep(360)
-            except Exception as e:
-                print 'traceback.format_exc():\n%s' % traceback.format_exc()
+            for all_classi in get_all_classi():
+                print 'all class = ' + str(all_classi[0])
+                try:
+                    f = flow(request,region,all_classi[0],url_region)
+                    f.search_classi()
+                    time.sleep(60)
+                except Exception as e:
+                    print 'traceback.format_exc():\n%s' % traceback.format_exc()
     finally:
         my_sql = Mysql_db()
         sql = "update test.crm_clue_password set status = 0 where id = " + str(user_password[0]);
         my_sql.excute(sql)
 
+def get_all_classi():
+    sql = "select class_1 from crm_config group by class_1"
+    return Mysql_db().get_sql_data(sql)
 
 def onsignal_term(a, b):
     print '收到SIGTERM信号'
