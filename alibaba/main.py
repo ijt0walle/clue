@@ -9,10 +9,9 @@ from mysql_db import Mysql_db
 from login_chrome import login_chrome_1688
 
 
-IP = '19b'
-region = '上海'
-all_classi = '医药保健'
-url_region = 'province=%C9%CF%BA%A3'
+IP = '17'
+regions = ['深证','上海','杭州','广州','南京','苏州']
+url_regions= ['city=%C9%EE%DB%DA&province=%B9%E3%B6%AB','province=%C9%CF%BA%A3','city=%BA%BC%D6%DD&province=%D5%E3%BD%AD','city=%B9%E3%D6%DD&province=%B9%E3%B6%AB','city=%C4%CF%BE%A9&province=%BD%AD%CB%D5','city=%CB%D5%D6%DD&province=%BD%AD%CB%D5']
 user_password = None
 
 def get_user_name():
@@ -36,13 +35,15 @@ def processing():
             return
         request = login_chrome_1688(user_password[1], user_password[2], int(user_password[0]))
         time.sleep(3)
-        while True:
+        for i in range(0,len(regions)):
+            region = regions[i]
+            url_region = url_regions[i]
             for all_classi in get_all_classi():
-                print 'all class = ' + str(all_classi[0])
+                print 'region = %s, all class = %s' % (region,all_classi[0])
                 try:
                     f = flow(request,region,all_classi[0],url_region)
-                    f.search_classi()
-                    time.sleep(60)
+                    f.process_classi()
+                    time.sleep(1)
                 except Exception as e:
                     print 'traceback.format_exc():\n%s' % traceback.format_exc()
     finally:
@@ -66,9 +67,8 @@ def onsignal_term(a, b):
     finally:
         sys.exit()
 
-
-
 if __name__ == '__main__':
+    '''注册信号'''
     print 'pid = '+ str(os.getpid())
     signal.signal(signal.SIGTERM, onsignal_term)
     processing()

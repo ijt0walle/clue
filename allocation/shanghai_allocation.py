@@ -120,8 +120,6 @@ def process_clue():
             time.sleep(random.uniform(1,10))
         except Exception as e:
             print clue[0],clue[1].replace('\n','').replace('\r',''),clue[2]
-            #index += 1
-            #print index
             print traceback.format_exc()
 
 

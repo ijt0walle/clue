@@ -1,28 +1,25 @@
-
 # coding=utf-8
-import base64
+from __future__ import print_function
+from __future__ import print_function
 import random
 import time
 import sys
-import traceback
-import urllib
-from urllib import quote
-from PIL import Image
 from lxml import etree
-from selenium import webdriver
-from selenium.webdriver import ActionChains
 
-class login_chrome_1688:
-    search_index_url = 'https://s.1688.com/company/company_search.htm'
-    sleep_time = 0
+from selenium import webdriver
+
+from base_log import Logger
+
+class login_sq:
+    search_index_url = 'http://cp.11467.com/home/login/index.html'
+    sleep_time = 25
     count = 3
-    captch_time = 300
     warning_sleep_time = 1
 
     def set_sleep_time(self,sleep_time):
         self.sleep_time = sleep_time
 
-    def __init__(self,user_name,password,i):
+    def __init__(self,user_name,password):
         reload(sys)
         sys.setdefaultencoding('utf-8')
         self.user_name = user_name
@@ -34,15 +31,7 @@ class login_chrome_1688:
             'User-Agent': 'Mozilla/5.0 (Windows NT 6.2; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0',
             'Connection': 'keep-alive'
         }
-        self.headers = []
-        #self.headers.append('user-agent="ozilla/5.0 (Linux; Android 5.0.2; vivo Y31 Build/LRX22G; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/53.0.2785.49 Mobile MQQBrowser/6.2 TBS/043613 Safari/537.36 MicroMessenger/6.5.19.1140 NetType/WIFI Language/zh_CN"')
-        #self.headers.append('user-agent="ozilla/5.0 (Linux; Android 5.0.2; vivo Y31 Build/LRX22G; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/53.0.2785.49 Mobile MQQBrowser/6.2 TBS/043613 Safari/537.36 MicroMessenger/6.5.19.1140 NetType/WIFI Language/zh_CN"')
-        self.headers.append('user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36"')
-        self.headers.append('user-agent="Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36"')
-        self.headers.append('user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36"')
-        self.headers.append('user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Safari/604.1.38"')
-        self.headers.append('user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) 			Chrome/55.0.2883.95 Safari/537.36"')
-        self.headers.append('user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.75 Safari/537.36"')
+
         # set custom headers
         # for key, value in headers.iteritems():
         #     webdriver.DesiredCapabilities.PHANTOMJS['phantomjs.page.customHeaders.{}'.format(key)] = value
@@ -58,67 +47,51 @@ class login_chrome_1688:
         #         pass
         #start_url = "https://detail.tmall.com/item.htm?id=540212526343"
         # PROXY = "121.43.173.22:12394"
-        #chrome_options = webdriver.ChromeOptions()
-        chrome_options = webdriver.ChromeOptions()
-        # 设置中文
-        chrome_options.add_argument('lang=zh_CN.UTF-8')
-        # 更换头部
-        chrome_options.add_argument(self.headers[i%len(self.headers)])
-        #chrome_options.add_argument('--proxy-server=%s' % PROXY)
+        # chrome_options = webdriver.ChromeOptions()
+        # chrome_options.add_argument('--proxy-server=%s' % PROXY)
         # self.dr = webdriver.Chrome(
         #     executable_path='/Users/zmj/Documents/chromedriver',
         #     chrome_options=chrome_options)
-        self.dr = webdriver.Chrome(
-            executable_path='/root/Downloads/chromedriver',
-            chrome_options=chrome_options)
-        #self.dr = webdriver.Chrome("/Users/qizhouli/Documents/chromedriver")
+        #执行chromedriver
+        self.dr = webdriver.Chrome("C:\Users\Administrator\Downloads\chromedriver_win32\chromedriver.exe")
         # self.dr.set_page_load_timeout(10)
         # # 设置10秒脚本超时时间
         # self.dr.set_script_timeout(10)
 
         # self.dr.delete_all_cookies()
         # self.dr.set_window_size(1280, 2400)  # optionalwindowHandle='current'
-        self.url = 'https://login.1688.com/member/signin.htm'
-        # self.dr.get(self.url)
-        # self.dr.delete_all_cookies()
-        #time.sleep(60)
+        #登录界面的网址
+        self.url = 'http://cp.11467.com/home/login/index.html'
+        self.dr.delete_all_cookies()
+        self.dr.get(self.url)
         self.get_cookies()
 
     def get_cookies(self):
         try:
-            self.dr.get(self.url)
-            time.sleep(5)
-            self.dr.delete_all_cookies()
-            index_cnt = 1
-            while index_cnt< 2:
-                loginframe = self.dr.find_element_by_xpath('//*[@id="loginchina"]/iframe')
-                self.dr.switch_to.frame(loginframe)
-                time.sleep(3)
-                self.dr.find_element_by_id("J_Quick2Static").click()
-                self.dr.find_element_by_id("TPL_username_1").send_keys(self.user_name)
-                time.sleep(1)
-                self.dr.find_element_by_id("TPL_password_1").clear()
-                self.dr.find_element_by_id("TPL_password_1").send_keys(self.password)
-                # ActionChains(self.dr).move_to_element(
-                #     self.dr.find_element_by_xpath('//input[@id="TPL_password_1"]')).perform()
-                self.dragSlider()
+            # self.dr.get(self.url)
+            # time.sleep(1)
+            self.dr.find_element_by_id("username").clear()
+            self.dr.find_element_by_id("password").clear()
+            self.dr.find_element_by_id("username").send_keys(self.user_name)
+            time.sleep(1)
+            self.dr.find_element_by_id("password").send_keys(self.password)
+            time.sleep(1)
+            self.dr.find_element_by_xpath("/html/body/div/form/div[5]/div[1]/input[2]").click()
+            time.sleep(1)
+            #获得下面的url地址
+            self.dr.get('http://b2b.11467.com/search/-70b970b95ba2.htm')
+            # self.dr.find_element_by_id('logosearch').clear()
+            # self.dr.find_elements_by_id('logosearch').send_keys("点点客")
+            # self.dr.find_elements_by_id('searchsubmit').click()
 
-                self.dr.find_element_by_id("J_SubmitStatic").click()
-                # if str(self.dr.current_url) == self.url:
-                #     self.dr.refresh()
-                time.sleep(60)
-
+            #cookies = self.dr.get_cookies()
+            #print("cookie = %s" % str(cookies))
+            #print(self.dr.page_source)#
         except Exception as e:
-            print 'traceback.format_exc():\n%s' % traceback.format_exc()
+            print(e)
 
-    def dragSlider(self):
-        w = self.dr.find_element_by_xpath('//*[@id="nc_1__scale_text"]')
-        width1 = w.size.get("width")
-        dragger = self.dr.find_element_by_xpath('//*[@id="nc_1_n1z"]')
-        width2 = dragger.size.get("width")
-        width =  width1 - width2
-        ActionChains(self.dr).move_to_element(dragger).perform()  # 将鼠标移动到这里
-        ActionChains(self.dr).drag_and_drop_by_offset(dragger, width, 0).perform()  # 拖拽到指定位置
+    def get_curr_html(self):
+        return self.dr.page_source
 
     def click_by_contains_url(self,url):
         html = ''
@@ -207,105 +180,52 @@ class login_chrome_1688:
         return html
 
     def dectected_click_status(self,html,url):
-        self.close_window()
-        status = self.detected_status(html)
-        flag = 0
-        index_cnt = 0
-        while status > 0:
-            flag = 1
-            self.get_captch_img()
-            html = self.dr.page_source
-            status = self.detected_status(html)
-            index_cnt += 1
-            if index_cnt>10:
-                time.sleep(self.captch_time)
-                index_cnt = 0
-        if flag != 0:
-            time.sleep(self.captch_time)
-        return html
-
-    def close_window(self):
-        time.sleep(0.5)
-        elements = self.dr.find_elements_by_xpath('//*[@id="sufei-dialog-close"]')
-        if elements is not None and len(elements)>0:
-            for i in range(0,5):
-                try:
-                    elements[0].click()
-                    break
-                except:
-                    time.sleep(2)
-                    print 'fu chaung dianjie shibai'
-
+        html_new = html
+        while True:
+            status = self.detected_status(html_new)
+            if status > 0:
+#                self.dr.back()
+                time.sleep(self.warning_sleep_time)
+                html_new = self.excute_click(url)
+            else:
+                return html_new
     def element_click(self,url):
         self.dr.find_element_by_xpath(url).click()
         html = self.dr.page_source
-        return self.dectected_click_status(html, url)
+        time.sleep(5)
         return html
-    #
-    # def detected_url_status(self,html,url):
-    #     html_new = html
-    #     while True:
-    #         status = self.detected_status(html_new)
-    #         if status > 0:
-    #             #self.dr.back()
-    #             time.sleep(self.warning_sleep_time)
-    #             html_new = self.excute_url(url)
-    #         else:
-    #             return html_new
+
+    def detected_url_status(self,html,url):
+        html_new = html
+        while True:
+            status = self.detected_status(html_new)
+            if status > 0:
+                #self.dr.back()
+                time.sleep(self.warning_sleep_time)
+                html_new = self.excute_url(url)
+            else:
+                return html_new
 
     def excute_chrome_url(self,url):
         try:
             html = self.excute_url(url)
-            return self.dectected_click_status(html,url)
+            return self.detected_url_status(html,url)
         except Exception as e:
             print(e)
-
+    #诊断状态
     def detected_status(self, html):
         status = self.is_301(html)
         if status > 0:
-            time.sleep(30)
             return status
         status = self.is_captcha(html)
         if status > 0:
-            #time.sleep(self.captch_time)
+
             return status
         status = self.is_404(html)
         if status > 0:
-            time.sleep(10)
             return status
         return 0
 
-    def get_captch_img(self):
-        try:
-            img_path = './image/'+str(int(random.uniform(1,1000)))+str(time.time())+'.jpg'
-            self.dr.save_screenshot(img_path)
-            time.sleep(1)
-            c = self.dr.find_element_by_xpath('//*[@id="checkcodeImg"]')
-            x = c.location.get('x')
-            y = c.location.get('y')
-            xx = x + c.size.get('width')
-            yy = y + c.size.get('height')
-            im = Image.open(img_path)
-            im = im.crop((int(x), int(y), int(xx), int(yy)))
-            im.save(img_path)
-            time.sleep(1)
-            f = open(img_path, 'rb')  # 二进制方式打开图文件
-            ls_f = base64.b64encode(f.read())  # 读取文件内容，转换为base64编码
-            f.close()
-            text = urllib.urlopen('http://39.107.66.223:8070/taobao/captch?img='+str(quote(ls_f))).read()
-            if text is None or len(text)==0:
-                return 'fdss'
-            else:
-                text = str(text).replace('"','').replace(' ','').replace('\n','')
-            self.dr.find_element_by_id("checkcodeInput").clear()
-            self.dr.find_element_by_id("checkcodeInput").send_keys(text)
-            time.sleep(random.uniform(1,2))
-            self.dr.find_element_by_xpath('//*[@id="query"]/div[2]/input').click()
-            time.sleep(0.5)
-        except Exception as e:
-            print (traceback.format_exc())
-            time.sleep(300)
-            
     def is_301(self, html):
         try:
             xpath = html.xpath('//*[@id="msgTip"]')[0].text
@@ -323,31 +243,33 @@ class login_chrome_1688:
             xpath = html.xpath('//*[@id="msgTip"]')[0].text
             if xpath.find('登录') >= 0:
                 self.logger.error("302")
-                return 404
+                return 404;
             else:
                 return 0;
         except Exception as e:
             pass
-        return 0
+        return 0;
 
     def is_captcha(self, html1):
         try:
             html = etree.HTML(html1)
             xpath = html.xpath('//*[@id="query"]/div[1]/p[3]/label')[0].text
             if xpath.find('验证码') >= 0:
+                #time.sleep(3600)
+                self.logger.error("302")
                 return 302;
             else:
                 return 0;
         except Exception as e:
             pass
         return 0
-
+    #时间延迟
     def get_time_sleep(self):
         return self.sleep_time+int(random.uniform(1, 5))
-
+    #设置睡眠时间
     def set_sleep_time(self, t):
         self.sleep_time = t
-
+    #获取title
     def get_page_title(self):
         return self.dr.title
 
@@ -370,14 +292,3 @@ class login_chrome_1688:
             else:
                 self.dr.switch_to_window(all_handles[window_size - 1])
                 return
-
-if __name__ == '__main__':
-    request = login_chrome_1688('flesdewe234','lqz123456789')
-    request.excute_phantomJS('http://www.baidu.com/')
-    dict = [{u'\u91cd\u590d\u91c7\u8d2d\u7387:': '24.8%', 'main_d': u'\u6bdb\u5dfe;,\u65b9\u5dfe;,\u6d74\u5dfe;',
-     'url': 'https://sanlitowel.1688.com', 'company': u'\u4e09\u5229\u96c6\u56e2\u670d\u9970\u6709\u9650\u516c\u53f8',
-     'shop_name': u'\u90fd\u8c6a\u65d7\u8230\u5e97\uff5c', 'company_persons': u'16\u4eba',
-     u'\u7d2f\u8ba1\u6210\u4ea4\u6570:': u'208\u7b14',
-     'address': u' \u4e0a\u6d77\u5e02\u95f5\u884c\u533a \u8054\u822a\u8def1188...', 'model': u'\u8d38\u6613\u578b',
-     u'\u81ea\u6709\u54c1\u724c:': u'\u96bd\u4f18,\u96bd\u4f18,COVATOR,COVATOR'}]
-

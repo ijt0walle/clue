@@ -11,7 +11,6 @@ from util import get_time
 class flow:
 
     def __init__(self, request,region,all_classi,url_region):
-        self.max_count = 25
         reload(sys)
         sys.setdefaultencoding('utf-8')
         self.request = request
@@ -74,11 +73,17 @@ class flow:
             print('page size is none')
         return 1
 
+    def process_classi(self):
+        flag = 0
+        index_count = 0
+        while index_count<1000 and flag == self.search_classi():
+            index_count +=1
+
     def search_classi(self):
         try:
             classi_cnt = self.get_classi_count()
             if classi_cnt is None or len(classi_cnt) == 0:
-                return
+                return 1
             classi = classi_cnt[1]
             index = classi_cnt[2]
             search_url = self.get_search_url(classi) + str(self.get_page_index(index))
@@ -87,6 +92,7 @@ class flow:
             self.search_classi_page(html, classi, page_size, index, classi_cnt[0])
         except Exception as e:
             print 'traceback.format_exc():\n%s' % traceback.format_exc()
+        return 0
 
     def search_classi_page(self, html, classi, page_size, index, class_id):
         if page_size <= 0 or index > page_size:

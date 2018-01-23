@@ -1,14 +1,14 @@
 # encoding: utf-8
-import urllib2
 
 from PIL import Image
-import pymysql as MySQLdb
+import MySQLdb
 import sys
 import time
 import httplib
 import base64
 import urllib
 from selenium.webdriver.common.action_chains import ActionChains
+import json
 
 '''设置编码'''
 reload(sys)
@@ -20,7 +20,7 @@ def append(def_file_name,def_flg,def_line):
     def_file_obj=open(def_file_name, def_flg)
     def_file_obj.write(def_line)
     def_file_obj.close()
-
+#网页滚到底层
 def scrollToEnd(dr):
     index=10
     while True:
@@ -50,34 +50,6 @@ def readFromDB(host,user,passwd,db,port,sql,values):
     conn.close()
     return info
 
-def update_sql(sql):
-    conn = MySQLdb.connect(host='121.43.168.132', user='maxwell', passwd='ED81A84EC3B290A4EFA26122test',db='test', charset='utf8', port=3307)
-    cur = conn.cursor()
-    cur.execute(sql)
-    conn.commit()
-    cur.close()
-    conn.close()
-
-def get_companies(source):
-    pack= readFromDB('121.43.168.132', 'maxwell', 'ED81A84EC3B290A4EFA26122test', 'test', 3307,'select company_name from test.companies where company_name<>"" and isDelete=0 and '+source+'=0 limit 2', ())
-    return pack
-
-def get_data(sql):
-    return readFromDB('121.43.168.132', 'maxwell', 'ED81A84EC3B290A4EFA26122test', 'test', 3307,sql,())
-
-
-def saveShop(shop):
-    if shop.get('phone') is None or len(shop.get('phone')) <=2:
-        return
-    executeDB('121.43.168.132', 'maxwell', 'ED81A84EC3B290A4EFA26122test', 'test', 3307,
-                    'INSERT IGNORE INTO test.companies_detail (`company_name`,`legal_person`,`address`,`registered_capital`,`phone`,`mail`,`soruce`,`ext`) '
-                    'VALUES (%s,%s,%s,%s,%s,%s,%s,%s)',
-                    (shop.get('company_name'), shop.get('legal_person'), shop.get('address'), shop.get('registered_capital'),shop.get('phone'),shop.get('mail'), shop.get('soruce'), shop.get('ext')))
-
-def saveCompany(company,source):
-    executeDB('121.43.168.132', 'maxwell', 'ED81A84EC3B290A4EFA26122test', 'test', 3307,
-                    'update test.companies set '+str(source)+' = 1 where company_name = %s', (company))
-
 def executeDB(host,user,passwd,db,port,sql,values):
     conn = MySQLdb.connect(host=host, user=user, passwd=passwd, db=db, charset='utf8', port=port)
     cur = conn.cursor()
@@ -86,10 +58,6 @@ def executeDB(host,user,passwd,db,port,sql,values):
     conn.commit()
     conn.close()
 
-def str_process(s):
-    if s is None or len(s) == 0:
-        return s
-    return str(s).replace('（','').replace('）','').replace(')','').replace('(','').lower()
 
 def get_access_token(mod,num):
     lis=readFromDB('121.43.168.132','maxwell','ED81A84EC3B290A4EFA26122test','test',3307,
@@ -193,7 +161,7 @@ def check_tmall_code(file):
     s = f.read().replace("\"","").replace("\n","").strip()
     return s
 
-
+#通过百度解析营业执照
 def get_business_license(file,access_token,refresh_mod,refresh_num):
     token=access_token
     if token=='':
@@ -212,7 +180,7 @@ def get_business_license(file,access_token,refresh_mod,refresh_num):
     map['token']=token#更新后的token
     return map
 
-
+# 通过百度解析普通图片
 def get_accurate_basic(file,access_token,refresh_mod,refresh_num):
     token = access_token
     if token=='':
@@ -230,15 +198,17 @@ def get_accurate_basic(file,access_token,refresh_mod,refresh_num):
             token = get_access_token(refresh_mod, refresh_num)
     map['token'] = token  # 更新后的token
     return map
-
-
+#登录网站
 def login(dr,user,password):
     dr.delete_all_cookies()
+    #执行下面的url地址
     dr.execute_script('window.open("https://login.tmall.com");')
+    #点开一个新的界面
     dr.switch_to.window(dr.window_handles[-1])
     '''登陆'''
     dr.switch_to.frame(0)
-    dr.find_element_by_xpath('//div[@class="login-switch"]').click()
+    # dr.find_element_by_xpath('//div[@class="login-switch"]').click()
+    dr.find_element_by_xpath('//*[@id="J_Quick2Static"]').click()
 
     ActionChains(dr).move_to_element(dr.find_element_by_xpath('//input[@id="TPL_username_1"]')).perform()
     i = 0

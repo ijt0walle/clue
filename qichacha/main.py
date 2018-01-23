@@ -5,6 +5,8 @@ import time
 import traceback
 
 import datetime
+import urllib2
+
 from selenium import webdriver
 from selenium.webdriver import ActionChains
 
@@ -20,7 +22,7 @@ sys.setdefaultencoding('utf-8')
 
 source = 'qichahca'
 list_dr =[]
-user_pds = tools.get_data("select user_name,pass_word from crm_clue_password where source = 'qichacha' limit 1")
+user_pds = tools.get_data("select user_name,pass_word from crm_clue_password where source = 'qichacha' limit 3")
 
 def dragSlider(dr):
     w = dr.find_element_by_xpath('//*[@id="nc_1_wrapper"]')
@@ -77,34 +79,61 @@ def get_company_info(company_name,index):
         print '%s is exists in db' % company_name
     else:
         infos = getShopInfo(dr, tools.str_process(company_name))
-        insert_into_db(infos)
+        insert_into_db(infos,company_name)
 
-def insert_into_db(infos):
+def insert_into_db(infos,company):
     for info in infos:
         try:
             company_name = info.get("公司名称")
+            s1 = str(info.get("注册资本"))
+            s2 = str(info.get("成立时间"))
+            s3 = str(info.get("法定代表人"))
+            s4 = str(info.get("邮箱"))
+            s5 = str(info.get("电话"))
+            s6 = str(info.get("股票简称"))
+            if s6 is None:
+                s6 = ' '
+            if info is None or len(info)<=2:
+                continue
             convert_result = json.dumps(info, ensure_ascii=False, encoding='UTF-8').encode("utf-8").replace('"', '\\"')
             time_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             tools.update_sql("insert into crm_clue_qichacha (company_name,status,result,created_at,updated_at) values('%s',1,'%s','%s','%s') ON DUPLICATE KEY UPDATE updated_at='%s'" % (company_name,convert_result,time_date,time_date,time_date))
-            print convert_result
+            #print convert_result
         except Exception as e:
             print 'traceback.format_exc():\n%s' % traceback.format_exc()
-
 
 def from_1688_company():
     while True:
         index = 0
         chrome_len = len(list_dr)
-        company_names = tools.get_data("select company_name,1688_result,id from test.`1688_clue_new` where 1688_consume = 0")
+        company_names = tools.get_data("select company_name,1688_result,id from test.`1688_clue_new` where id not in (select p_id from crm_process_company where status = 0 and source = '%s') limit 1000" % source)
         for company_name in company_names:
             try:
                 get_company_info(company_name[0],index % chrome_len)
-                tools.update_sql("update 1688_clue_new set 1688_consume =1 where company_name = '%s'" % company_name[0])
-                time.sleep(random.uniform(5,10))
-                index += 1
+                tools.update_sql("insert into crm_process_company(p_id,status,source,updated_at) values(%d,1,'%s','%s') ON DUPLICATE KEY UPDATE status = 1,updated_at='%s'" % (int(company_name[2]),source,datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+                time.sleep(random.uniform(1,10))
             except:
                 print 'traceback.format_exc():\n%s' % traceback.format_exc()
+            index += 1
         time.sleep(3600)
 
+def get_new_three_info():
+    e = 'dfsdfs'
+    e = e.find('d')
+    print e
+
+    companys = ["沃尔得","易可文化","凯臣服饰","朗涛股份","高更科技","昌顺烘焙","有金人家","嘉妮诗","大牧汗","华泰珠宝","萧雅股份","精发股份","杜玛科技","亚玫股份","上海医疗","澜创科技","万丰文化","仙谷股份","亚美股份","鼎尚中式","贯康股份","学美教育","柯创文化","激想体育","远播教育","旋荣科技","善之农","ST三由","母婴之家","中主科技","汇蓝农业","泰泓珠宝","佑泽股份","巨臣婴童","东华美钻","添庆股份","玖悦股份","东西方","印克电商","天谷生物","旭京股份","凯诘电商","锦元黄金","丁义兴","泰璞股份","三仟院","同仁药业","源知环境","乓乓响","闽申农业","俏佳人","喜喜母婴","乔佩斯","芙儿优","ST手乐","荣恩集团","延华生物","乐宝股份","诺诚股份","广生行","童康健康","传诚时装","上海泰昌","迈动医疗","礼多多","泉欣新材","行动者","昶昱黄金","金易久大","思明堂","创侨股份","金杉粮油","上海青禾","希雅图","佳友科技","中道股份","知音文化","张铁军","ST丰汇","腾远股份","伊禾农品"]
+    index = 0
+    for company in companys:
+        try:
+            chrome_len = len(list_dr)
+            get_company_info(company, index % chrome_len)
+            time.sleep(random.uniform(0, 2))
+            index += 1
+        except:
+            print 'traceback.format_exc():\n%s' % traceback.format_exc()
+    time.sleep(3600)
+
+#get_new_three_info()
 from_1688_company()
 
